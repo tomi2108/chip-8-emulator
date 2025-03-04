@@ -2,7 +2,9 @@
 #define CPU_H_
 
 #include "common.h"
+#include "keypad.h"
 #include "memory.h"
+#include "timer.h"
 #include "ppu.h"
 #include <commons/buffer.h>
 #include <commons/collections/list.h>
@@ -10,6 +12,8 @@
 #include <commons/log.h>
 #include <commons/sys/exit.h>
 #include <commons/sys/file.h>
+#include <time.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>

@@ -4,6 +4,7 @@
 #include "cartridge.h"
 #include "ppu.h"
 #include "memory.h"
+#include "timer.h"
 #include "cpu.h"
 #include <commons/buffer.h>
 #include <commons/collections/list.h>

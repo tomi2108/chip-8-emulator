@@ -2,14 +2,12 @@
 #include <commons/log.h>
 #include <unistd.h>
 
-#define FRAMERATE 60
+#define FRAMERATE 90
 
 log_t emu_logger = {.file = "log.log",
                     .process = "EMU",
                     .level = LOG_LEVEL_DEBUG,
                     .is_active_console = 1};
-
-int running;
 
 int main(const int argc, const char *argv[]) {
   emu_logger.logger =
@@ -21,25 +19,25 @@ int main(const int argc, const char *argv[]) {
 
   const char *rom_path = argv[1];
 
-  state *emu_state = safe_malloc(emu_logger.logger, sizeof(state));
-
-  emu_state->ticks = 0;
-  emu_state->running = 1;
-
   memory_init();
   cartdrige_load(rom_path);
 
+  timer_init();
   cpu_init();
   screen_init();
+  keypad_init();
 
-  while (emu_state->running) {
+  while (1) {
     cpu_exec();
     screen_draw();
 
-    emu_state->ticks++;
+    keypad_handle_input();
+    s_timer_tick();
+    d_timer_tick();
     usleep(1000 * 1000 * 1 / FRAMERATE);
   }
 
+  keypad_free();
   screen_free();
   cpu_free();
   memory_free();

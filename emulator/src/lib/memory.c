@@ -3,7 +3,6 @@
 #include <string.h>
 
 t_list *stack;
-
 log_t memory_logger = {.file = "log.log",
                        .process = "MEMORY",
                        .level = LOG_LEVEL_DEBUG,
