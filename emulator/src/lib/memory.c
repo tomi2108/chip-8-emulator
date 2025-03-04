@@ -1,14 +1,36 @@
 #include "../include/memory.h"
-#include <commons/collections/list.h>
+#include <commons/log.h>
+#include <string.h>
 
 t_list *stack;
 
 log_t memory_logger = {.file = "log.log",
-                    .process = "MEMORY",
-                    .level = LOG_LEVEL_DEBUG,
-                    .is_active_console = 1};
+                       .process = "MEMORY",
+                       .level = LOG_LEVEL_DEBUG,
+                       .is_active_console = 1};
 
-u8 ram[4096] = {
+u8 ram[0xFFFF] = {0};
+
+void ram_write(const u8 *stream, u16 length, u16 offset) {
+  memcpy(&ram[offset], stream, length);
+}
+
+u8 ram_read(u16 offset) { return ram[offset]; }
+
+void stack_push(u16 bytes) {
+  u16 *entry = safe_malloc(NULL, sizeof(u16));
+  *entry = bytes;
+  list_add_in_index(stack, list_size(stack) - 1, entry);
+}
+
+u16 stack_pop() {
+  u16 *bytes = list_get(stack, list_size(stack) - 1);
+  u16 ret = *bytes;
+  free(bytes);
+  return ret;
+}
+
+u8 font[0xFF] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -27,21 +49,16 @@ u8 ram[4096] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-void ram_write(const u8 *stream, u8 offset) { ram[offset] = *stream; }
-u8 *ram_read(u8 offset) { return &ram[offset]; }
-
-void stack_push(u16 bytes) {
-  u16 *entry = safe_malloc(NULL, sizeof(u16));
-  *entry = bytes;
-  list_add_in_index(stack, list_size(stack) - 1, entry);
+void memory_init() {
+  memory_logger.logger =
+      log_create(memory_logger.file, memory_logger.process,
+                 memory_logger.is_active_console, memory_logger.level);
+  stack = list_create();
+  ram_write(font, 5 * 0xF, 0x50);
 }
 
-u16 stack_pop() {
-  u16 *bytes = list_get(stack, list_size(stack) - 1);
-  u16 ret = *bytes;
-  free(bytes);
-  return ret;
+void memory_free() {
+  log_destroy(memory_logger.logger);
+  memset(ram, 0, 0xFFFF);
+  list_destroy(stack);
 }
-
-void memory_init() { stack = list_create(); }
-void memory_free() { list_destroy(stack); }

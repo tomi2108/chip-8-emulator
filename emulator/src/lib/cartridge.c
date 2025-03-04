@@ -8,28 +8,19 @@ log_t cartdrige_logger = {.file = "log.log",
 
 t_log_level log_level = LOG_LEVEL_DEBUG;
 
-cartdrige *cartdrige_load(const char *filename) {
-  cartdrige *c = safe_malloc(NULL, sizeof(cartdrige));
-
+void cartdrige_load(const char *filename) {
   FILE *file = safe_fopen(NULL, filename, "r");
   rewind(file);
 
   fseek(file, 0, SEEK_END);
 
-  c->rom_size = ftell(file);
+  u16 size = ftell(file);
   rewind(file);
 
-  c->rom_data = safe_malloc(NULL, c->rom_size);
+  u8 *stream = safe_malloc(NULL, size);
 
-  fread(c->rom_data, c->rom_size, 1, file);
-
-  cartdrige_logger.logger =
-      log_create(cartdrige_logger.file, cartdrige_logger.process,
-                 cartdrige_logger.is_active_console, cartdrige_logger.level);
-
-  log_debug(cartdrige_logger.logger, "File size: %d Bytes", c->rom_size);
+  fread(stream, size, sizeof(u8), file);
+  ram_write(stream, size, 0x200);
 
   fclose(file);
-  log_destroy(cartdrige_logger.logger);
-  return c;
 }

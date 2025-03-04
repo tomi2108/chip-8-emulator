@@ -2,44 +2,91 @@
 #include <commons/collections/list.h>
 #include <commons/log.h>
 
-#define FILE_LINE_MAX_LENGTH 500
-
-regs registers = {0};
+regs registers = {.R_PC = 0x200, 0};
 
 log_t cpu_logger = {.file = "log.log",
                     .process = "CPU",
                     .level = LOG_LEVEL_DEBUG,
                     .is_active_console = 1};
 
-instruction *instruction_decode(u8 byte) {
-  instruction *i = get_instruction(byte);
-  return i;
-}
+void instruction_noop() {}
 
-void instruction_exec(instruction *i) {
-  void (*exec_function)(instruction *) = get_instruction_function(i->op);
-  exec_function(i);
-}
+void instruction_jump(u16 n) { registers.R_PC = n; }
 
-void log_param(void *arg) {
-  param *p = (param *)arg;
-  log_debug(cpu_logger.logger, "Type: %d", p->type);
-  log_debug(cpu_logger.logger, "Value: %s", (char *)p->value);
-}
+void instruction_set(u8 reg_dest, u8 n) { registers.R_X[reg_dest] = n; }
 
-char *to_binary_string(int n, int bits) {
-  int num_bits = sizeof(char) * bits;
-  char *string = safe_malloc(cpu_logger.logger, num_bits + 1);
+void instruction_add(u8 reg_dest, u8 n) { registers.R_X[reg_dest] += n; }
 
-  for (int i = num_bits - 1; i >= 0; i--) {
-    string[i] = (n & 1) + '0';
-    n >>= 1;
+void instruction_set_index(u16 n) { registers.R_I = n; }
+
+void instruction_draw(u8 reg_x, u8 reg_y, u8 n) {
+  registers.R_X[0xF] = 0;
+  u8 x = registers.R_X[reg_x];
+  u8 y = registers.R_X[reg_y];
+
+  for (u8 i = 0; i < n; i++) {
+    x = x & (SCREEN_WIDTH - 1);
+    y = y & (SCREEN_WIDTH - 1);
+    u8 sprite_byte = ram_read(registers.R_I + i);
+    log_debug(cpu_logger.logger, "x: %d", x);
+    log_debug(cpu_logger.logger, "y: %d", y);
+
+    for (int j = 0; j < 8; j++) {
+      bool bit = (sprite_byte >> j) & 0x1;
+      bool pixel = screen_get(x, y);
+
+      if (bit && pixel) {
+        screen_set(x, y, 0);
+        registers.R_X[0xF] = 1;
+      }
+
+      if (bit && !pixel)
+        screen_set(x, y, 1);
+
+      if (x > SCREEN_WIDTH)
+        break;
+      x++;
+    }
+    y++;
+    if (y > SCREEN_HEIGHT)
+      break;
   }
-  string[num_bits] = '\0';
-  return string;
 }
 
-void log_registers() {}
+void instruction_exec(u16 bytes) {
+  u8 nibble_1 = (0xF000 & bytes) >> 12;
+  u8 nibble_2 = (0x0F00 & bytes) >> 8;
+  u8 nibble_3 = (0x00F0 & bytes) >> 4;
+  u8 nibble_4 = (0x000F & bytes) >> 0;
+
+  u8 NN = 0x00FF & bytes;
+  u16 NNN = 0x0FFF & bytes;
+
+  switch (nibble_1) {
+  case 0x0:
+    if (nibble_2 == 0 && nibble_3 == 0xE && nibble_4 == 0)
+      return screen_clear();
+    else
+      return instruction_noop();
+
+  case 0x1:
+    return instruction_jump(NNN);
+
+  case 0x6:
+    return instruction_set(nibble_2, NN);
+
+  case 0x7:
+    return instruction_add(nibble_2, NN);
+
+  case 0xA:
+    return instruction_set_index(NNN);
+
+  case 0xD:
+    return instruction_draw(nibble_2, nibble_3, nibble_4);
+  default:
+    instruction_noop();
+  }
+}
 
 void cpu_init() {
   cpu_logger.logger =
@@ -47,19 +94,14 @@ void cpu_init() {
                  cpu_logger.is_active_console, cpu_logger.level);
 }
 
-void free_instruction(instruction *i) { free(i); }
+void cpu_exec() {
+  u8 byte_1 = ram_read(registers.R_PC);
+  u8 byte_2 = ram_read(registers.R_PC + 1);
+  u16 bytes = (byte_1 << 8) | byte_2;
 
-void cpu_exec(const char *rom_data) {
+  registers.R_PC += 2;
 
-  // u8 byte = rom_data[0x150 + registers.PC - 1];
-  // if (registers.PC == 0)
-  //   byte = rom_data[0x100];
-  //
-  // registers.PC++;
-  // instruction *i = instruction_decode(byte);
-  // instruction_exec(i);
-  //
-  // free_instruction(i);
+  instruction_exec(bytes);
 }
 
 void cpu_free() {}

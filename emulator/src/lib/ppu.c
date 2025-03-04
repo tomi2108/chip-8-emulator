@@ -7,10 +7,6 @@
 #include <commons/log.h>
 #include <string.h>
 
-#define SCREEN_WIDTH 64
-#define SCREEN_HEIGHT 32
-#define SCALE 20
-
 log_t ppu_logger = {.file = "log.log",
                     .process = "PPU",
                     .level = LOG_LEVEL_DEBUG,
@@ -19,16 +15,7 @@ log_t ppu_logger = {.file = "log.log",
 SDL_Window *window;
 SDL_Renderer *renderer;
 
-bool screen[SCREEN_WIDTH][SCREEN_HEIGHT] = {
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-};
+bool screen[SCREEN_WIDTH][SCREEN_HEIGHT] = {0};
 
 void screen_clear() { memset(screen, 0, SCREEN_WIDTH * SCREEN_HEIGHT); }
 
@@ -66,3 +53,6 @@ void screen_free() {
   SDL_DestroyRenderer(renderer);
   SDL_Quit();
 }
+
+void screen_set(u8 x, u8 y, bool to) { screen[x][y] = to; }
+bool screen_get(u8 x, u8 y) { return screen[x][y]; }
