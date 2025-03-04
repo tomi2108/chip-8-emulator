@@ -1,2 +1,2 @@
-# gbc-emulator
+# chip-8-emulator
 
