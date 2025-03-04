@@ -21,25 +21,21 @@ void instruction_set_index(u16 n) { registers.R_I = n; }
 
 void instruction_draw(u8 reg_x, u8 reg_y, u8 n) {
   registers.R_X[0xF] = 0;
-  u8 x = registers.R_X[reg_x];
-  u8 y = registers.R_X[reg_y];
+  u8 y = registers.R_X[reg_y] & (SCREEN_HEIGHT - 1);
 
   for (u8 i = 0; i < n; i++) {
-    x = x & (SCREEN_WIDTH - 1);
-    y = y & (SCREEN_WIDTH - 1);
+    u8 x = registers.R_X[reg_x] & (SCREEN_WIDTH - 1);
     u8 sprite_byte = ram_read(registers.R_I + i);
-    log_debug(cpu_logger.logger, "x: %d", x);
-    log_debug(cpu_logger.logger, "y: %d", y);
 
     for (int j = 0; j < 8; j++) {
-      bool bit = (sprite_byte >> j) & 0x1;
+
+      bool bit = (sprite_byte >> (7 - j)) & 0x1;
       bool pixel = screen_get(x, y);
 
       if (bit && pixel) {
         screen_set(x, y, 0);
         registers.R_X[0xF] = 1;
       }
-
       if (bit && !pixel)
         screen_set(x, y, 1);
 
