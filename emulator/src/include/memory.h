@@ -12,6 +12,6 @@ u8 ram_read(u16 offset);
 
 void stack_push(u16 bytes);
 
-u16 stack_pop();
+u16 *stack_pop();
 
 #endif

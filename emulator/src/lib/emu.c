@@ -1,13 +1,23 @@
 #include "../include/emu.h"
 #include <commons/log.h>
+#include <pthread.h>
 #include <unistd.h>
 
-#define FRAMERATE 90
+#define FRAMERATE 120
 
 log_t emu_logger = {.file = "log.log",
                     .process = "EMU",
                     .level = LOG_LEVEL_DEBUG,
                     .is_active_console = 1};
+
+void *input_handler() {
+  keypad_init();
+  while (1) {
+    keypad_handle_input();
+    usleep(1000 * 1000 * 1 / FRAMERATE);
+  }
+  keypad_free();
+}
 
 int main(const int argc, const char *argv[]) {
   emu_logger.logger =
@@ -25,19 +35,20 @@ int main(const int argc, const char *argv[]) {
   timer_init();
   cpu_init();
   screen_init();
-  keypad_init();
+
+  pthread_t input_handle_thread;
+  pthread_create(&input_handle_thread, NULL, &input_handler, NULL);
 
   while (1) {
     cpu_exec();
     screen_draw();
 
-    keypad_handle_input();
     s_timer_tick();
     d_timer_tick();
     usleep(1000 * 1000 * 1 / FRAMERATE);
   }
 
-  keypad_free();
+  pthread_join(input_handle_thread, NULL);
   screen_free();
   cpu_free();
   memory_free();

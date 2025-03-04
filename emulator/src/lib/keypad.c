@@ -9,8 +9,22 @@ log_t keypad_logger = {.file = "log.log",
                        .is_active_console = 1};
 
 u8 keycodes[0x10] = {
-    SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_q, SDLK_w, SDLK_e, SDLK_r,
-    SDLK_a, SDLK_s, SDLK_d, SDLK_f, SDLK_z, SDLK_x, SDLK_c, SDLK_v,
+    SDL_SCANCODE_1, 
+    SDL_SCANCODE_2, 
+    SDL_SCANCODE_3, 
+    SDL_SCANCODE_4, 
+    SDL_SCANCODE_Q, 
+    SDL_SCANCODE_W, 
+    SDL_SCANCODE_E, 
+    SDL_SCANCODE_R, 
+    SDL_SCANCODE_A, 
+    SDL_SCANCODE_S, 
+    SDL_SCANCODE_D, 
+    SDL_SCANCODE_F, 
+    SDL_SCANCODE_Z, 
+    SDL_SCANCODE_X, 
+    SDL_SCANCODE_C, 
+    SDL_SCANCODE_V, 
 };
 
 void keypad_press_key(u8 key) { keys[key] = 1; }
@@ -39,11 +53,8 @@ u8 get_keycode(u8 target, bool *res) {
 void keypad_handle_input() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
-    log_debug(keypad_logger.logger, "Getting keycode for: %c",
-              event.key.keysym.sym);
     bool res = 1;
-    u8 key = get_keycode(event.key.keysym.sym, &res);
-    log_debug(keypad_logger.logger, "Got key: %x", key);
+    u8 key = get_keycode(event.key.keysym.scancode, &res);
     if (res == 0)
       continue;
 

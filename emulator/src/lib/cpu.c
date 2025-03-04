@@ -25,7 +25,10 @@ void instruction_jump_offset_v0(u16 nnn) {
 void instruction_jump_offset(u8 reg, u16 nnn) {
   registers.R_PC = nnn + registers.R_X[reg];
 }
-void instruction_return() { registers.R_PC = stack_pop(); }
+void instruction_return() {
+  u16 *bytes = stack_pop();
+  registers.R_PC = *bytes;
+}
 void instruction_sub_routine(u16 nnn) {
   stack_push(registers.R_PC);
   registers.R_PC = nnn;

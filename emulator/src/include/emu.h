@@ -13,6 +13,7 @@
 #include <commons/sys/exit.h>
 #include <commons/sys/file.h>
 #include <stdint.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 

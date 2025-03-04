@@ -22,12 +22,7 @@ void stack_push(u16 bytes) {
   list_add_in_index(stack, list_size(stack) - 1, entry);
 }
 
-u16 stack_pop() {
-  u16 *bytes = list_get(stack, list_size(stack) - 1);
-  u16 ret = *bytes;
-  free(bytes);
-  return ret;
-}
+u16 *stack_pop() { return list_get(stack, list_size(stack) - 1); }
 
 u8 font[0xFF] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
