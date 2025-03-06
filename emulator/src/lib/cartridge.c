@@ -21,6 +21,7 @@ void cartdrige_load(const char *filename) {
 
   fread(stream, size, sizeof(u8), file);
   ram_write(stream, size, 0x200);
+  free(stream);
 
   fclose(file);
 }

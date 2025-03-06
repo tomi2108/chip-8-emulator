@@ -8,7 +8,7 @@ log_t memory_logger = {.file = "log.log",
                        .level = LOG_LEVEL_DEBUG,
                        .is_active_console = 1};
 
-u8 ram[0xFFFF] = {0};
+u8 ram[0xFFF] = {0};
 
 void ram_write(const u8 *stream, u16 length, u16 offset) {
   memcpy(&ram[offset], stream, length);
@@ -53,6 +53,6 @@ void memory_init() {
 
 void memory_free() {
   log_destroy(memory_logger.logger);
-  memset(ram, 0, 0xFFFF);
+  memset(ram, 0, 0xFFF);
   list_destroy(stack);
 }

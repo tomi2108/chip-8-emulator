@@ -10,10 +10,13 @@ log_t emu_logger = {.file = "log.log",
                     .level = LOG_LEVEL_DEBUG,
                     .is_active_console = 1};
 
-void *input_handler() {
+void *input_handler(void *arg) {
+  bool *stop = (bool *)arg;
   keypad_init();
   while (1) {
-    keypad_handle_input();
+    keypad_handle_input(stop);
+    if (*stop == 1)
+      break;
     usleep(1000 * 1000 * 1 / FRAMERATE);
   }
   keypad_free();
@@ -37,9 +40,11 @@ int main(const int argc, const char *argv[]) {
   screen_init();
 
   pthread_t input_handle_thread;
-  pthread_create(&input_handle_thread, NULL, &input_handler, NULL);
+  bool *stop = safe_malloc(emu_logger.logger, sizeof(bool));
+  *stop = 0;
+  pthread_create(&input_handle_thread, NULL, &input_handler, stop);
 
-  while (1) {
+  while (!*stop) {
     cpu_exec();
     screen_draw();
 
@@ -49,6 +54,7 @@ int main(const int argc, const char *argv[]) {
   }
 
   pthread_join(input_handle_thread, NULL);
+  free(stop);
   screen_free();
   cpu_free();
   memory_free();

@@ -10,7 +10,7 @@ u8 keypad_get_key(bool *res);
 void keypad_press_key(u8 key);
 void keypad_release_key(u8 key);
 
-void keypad_handle_input();
+void keypad_handle_input(bool *stop);
 
 void keypad_init();
 void keypad_free();

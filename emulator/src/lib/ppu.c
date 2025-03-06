@@ -28,16 +28,16 @@ void screen_init() {
   SDL_CreateWindowAndRenderer(SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE, 0,
                               &window, &renderer);
   SDL_RenderSetScale(renderer, SCALE, SCALE);
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+  SDL_SetRenderDrawColor(renderer, 15, 56, 15, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(renderer);
   SDL_RenderPresent(renderer);
 }
 
 void screen_draw() {
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+  SDL_SetRenderDrawColor(renderer, 15, 56, 15, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(renderer);
 
-  SDL_SetRenderDrawColor(renderer, 225, 255, 255, SDL_ALPHA_OPAQUE);
+  SDL_SetRenderDrawColor(renderer, 155, 188, 15, SDL_ALPHA_OPAQUE);
   for (int y = 0; y < SCREEN_HEIGHT; y++) {
     for (int x = 0; x < SCREEN_WIDTH; x++) {
       if (screen[x][y])

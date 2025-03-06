@@ -1,4 +1,5 @@
 #include "../include/keypad.h"
+#include <SDL2/SDL_scancode.h>
 #include <commons/log.h>
 
 u8 keys[0x10] = {0};
@@ -9,22 +10,10 @@ log_t keypad_logger = {.file = "log.log",
                        .is_active_console = 1};
 
 u8 keycodes[0x10] = {
-    SDL_SCANCODE_1, 
-    SDL_SCANCODE_2, 
-    SDL_SCANCODE_3, 
-    SDL_SCANCODE_4, 
-    SDL_SCANCODE_Q, 
-    SDL_SCANCODE_W, 
-    SDL_SCANCODE_E, 
-    SDL_SCANCODE_R, 
-    SDL_SCANCODE_A, 
-    SDL_SCANCODE_S, 
-    SDL_SCANCODE_D, 
-    SDL_SCANCODE_F, 
-    SDL_SCANCODE_Z, 
-    SDL_SCANCODE_X, 
-    SDL_SCANCODE_C, 
-    SDL_SCANCODE_V, 
+    SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3, SDL_SCANCODE_4,
+    SDL_SCANCODE_Q, SDL_SCANCODE_W, SDL_SCANCODE_E, SDL_SCANCODE_R,
+    SDL_SCANCODE_A, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_F,
+    SDL_SCANCODE_Z, SDL_SCANCODE_X, SDL_SCANCODE_C, SDL_SCANCODE_V,
 };
 
 void keypad_press_key(u8 key) { keys[key] = 1; }
@@ -50,13 +39,18 @@ u8 get_keycode(u8 target, bool *res) {
   return 0;
 }
 
-void keypad_handle_input() {
+void keypad_handle_input(bool *stop) {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     bool res = 1;
     u8 key = get_keycode(event.key.keysym.scancode, &res);
-    if (res == 0)
-      continue;
+    if (res == 0) {
+      if (event.key.keysym.scancode == SDL_SCANCODE_RETURN) {
+        *stop = 1;
+        break;
+      } else
+        continue;
+    }
 
     switch (event.type) {
     case SDL_KEYDOWN:
