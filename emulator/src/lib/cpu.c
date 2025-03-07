@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-regs registers = {0, .R_PC = 0x200};
+regs registers = {.R_PC = 0x200, 0};
 
 t_config *cpu_config;
 log_t cpu_logger = {.file = "log.log",
@@ -28,8 +28,8 @@ void instruction_jump_offset(u8 reg, u16 nnn) {
   registers.R_PC = nnn + registers.R_X[reg];
 }
 void instruction_return() {
-  u16 *bytes = stack_pop();
-  registers.R_PC = *bytes;
+  u16 bytes = stack_pop();
+  registers.R_PC = bytes;
 }
 void instruction_sub_routine(u16 nnn) {
   stack_push(registers.R_PC);
@@ -102,9 +102,7 @@ void instruction_sub_regs(u8 vx, u8 vy) {
 void instruction_sub_regs_i(u8 vx, u8 vy) {
   bool overflows = registers.R_X[vy] >= registers.R_X[vx];
   registers.R_X[vx] = registers.R_X[vy] - registers.R_X[vx];
-  registers.R_X[0xF] = 0;
-  if (overflows)
-    registers.R_X[0xF] = 1;
+  registers.R_X[0xF] = overflows;
 }
 
 void instruction_shift_left(u8 vx, u8 vy) {
@@ -125,7 +123,7 @@ void instruction_shift_right(u8 vx, u8 vy) {
 void instruction_get_key(u8 reg) {
   bool res = 1;
   u8 key = keypad_get_key(&res);
-  if (res == 0)
+  if (res)
     registers.R_X[reg] = key;
   else
     registers.R_PC -= 2;

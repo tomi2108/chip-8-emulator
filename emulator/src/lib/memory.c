@@ -1,4 +1,5 @@
 #include "../include/memory.h"
+#include <commons/collections/list.h>
 #include <commons/log.h>
 #include <string.h>
 
@@ -19,10 +20,13 @@ u8 ram_read(u16 offset) { return ram[offset]; }
 void stack_push(u16 bytes) {
   u16 *entry = safe_malloc(NULL, sizeof(u16));
   *entry = bytes;
-  list_add_in_index(stack, list_size(stack) - 1, entry);
+  list_add(stack, entry);
 }
 
-u16 *stack_pop() { return list_get(stack, list_size(stack) - 1); }
+u16 stack_pop() {
+  u16 *bytes = list_remove(stack, list_size(stack) - 1);
+  return *bytes;
+}
 
 u8 font[0x50] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
