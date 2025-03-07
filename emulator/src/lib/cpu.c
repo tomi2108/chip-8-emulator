@@ -17,7 +17,7 @@ log_t cpu_logger = {.file = "log.log",
 void instruction_noop() {}
 
 void instruction_random(u8 reg, u8 nn) {
-  registers.R_X[reg] &= (rand() % 0xFF);
+  registers.R_X[reg] = (rand() % 0xFF) & nn;
 }
 
 void instruction_jump(u16 nnn) { registers.R_PC = nnn; }
