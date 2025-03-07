@@ -2,9 +2,11 @@
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-regs registers = {.R_PC = 0x200, 0};
+regs registers = {0, .R_PC = 0x200};
 
 t_config *cpu_config;
 log_t cpu_logger = {.file = "log.log",
@@ -64,61 +66,59 @@ void instruction_set_d_timer_reg(u8 reg) { d_timer_set(registers.R_X[reg]); }
 void instruction_set_s_timer_reg(u8 reg) { s_timer_set(registers.R_X[reg]); }
 
 void instruction_set_index(u16 nnn) { registers.R_I = nnn; }
-void instruction_set_nn(u8 reg_dest, u8 nn) { registers.R_X[reg_dest] = nn; }
-void instruction_set_regs(u8 reg_dest, u8 reg_source) {
-  registers.R_X[reg_dest] = registers.R_X[reg_source];
+void instruction_set_nn(u8 vx, u8 nn) { registers.R_X[vx] = nn; }
+void instruction_set_regs(u8 vx, u8 vy) {
+  registers.R_X[vx] = registers.R_X[vy];
 }
 
-void instruction_or_regs(u8 reg_dest, u8 reg_source) {
-  registers.R_X[reg_dest] |= registers.R_X[reg_source];
+void instruction_or_regs(u8 vx, u8 vy) {
+  registers.R_X[vx] |= registers.R_X[vy];
 }
-void instruction_and_regs(u8 reg_dest, u8 reg_source) {
-  registers.R_X[reg_dest] &= registers.R_X[reg_source];
+void instruction_and_regs(u8 vx, u8 vy) {
+  registers.R_X[vx] &= registers.R_X[vy];
 }
-void instruction_xor_regs(u8 reg_dest, u8 reg_source) {
-  registers.R_X[reg_dest] ^= registers.R_X[reg_source];
+void instruction_xor_regs(u8 vx, u8 vy) {
+  registers.R_X[vx] ^= registers.R_X[vy];
 }
 
-void instruction_add_index(u8 reg_dest) {
-  if (config_get_int_value(cpu_config, "add_index_carry_flag") &&
-      (0x1000 - registers.R_I < registers.R_X[reg_dest]))
+void instruction_add_index(u8 vx) {
+  bool overflows = 0x1000 - registers.R_I < registers.R_X[vx];
+  registers.R_I += registers.R_X[vx];
+  if (config_get_int_value(cpu_config, "add_index_carry_flag") && overflows)
     registers.R_X[0xF] = 1;
-
-  registers.R_I += registers.R_X[reg_dest];
 }
-void instruction_add_nn(u8 reg_dest, u8 nn) { registers.R_X[reg_dest] += nn; }
-void instruction_add_regs(u8 reg_dest, u8 reg_source) {
+void instruction_add_nn(u8 vx, u8 nn) { registers.R_X[vx] += nn; }
+void instruction_add_regs(u8 vx, u8 vy) {
+  bool overflows = 0xFF - registers.R_X[vx] < registers.R_X[vy];
+  registers.R_X[vx] += registers.R_X[vy];
+  registers.R_X[0xF] = overflows;
+}
+
+void instruction_sub_regs(u8 vx, u8 vy) {
+  bool overflows = registers.R_X[vx] >= registers.R_X[vy];
+  registers.R_X[vx] -= registers.R_X[vy];
+  registers.R_X[0xF] = overflows;
+}
+void instruction_sub_regs_i(u8 vx, u8 vy) {
+  bool overflows = registers.R_X[vy] >= registers.R_X[vx];
+  registers.R_X[vx] = registers.R_X[vy] - registers.R_X[vx];
   registers.R_X[0xF] = 0;
-  if (0xFF - registers.R_X[reg_dest] < registers.R_X[reg_source])
+  if (overflows)
     registers.R_X[0xF] = 1;
-  registers.R_X[reg_dest] += registers.R_X[reg_source];
 }
 
-void instruction_sub_regs(u8 reg_dest, u8 reg_source) {
-  registers.R_X[0xF] = 0;
-  if (registers.R_X[reg_dest] > registers.R_X[reg_source])
-    registers.R_X[0xF] = 1;
-  registers.R_X[reg_dest] = registers.R_X[reg_dest] - registers.R_X[reg_source];
-}
-void instruction_sub_regs_i(u8 reg_dest, u8 reg_source) {
-  registers.R_X[0xF] = 0;
-  if (registers.R_X[reg_source] > registers.R_X[reg_dest])
-    registers.R_X[0xF] = 1;
-  registers.R_X[reg_dest] = registers.R_X[reg_source] - registers.R_X[reg_dest];
-}
-
-void instruction_shift_left(u8 reg_dest, u8 reg_source) {
+void instruction_shift_left(u8 vx, u8 vy) {
   if (config_get_int_value(cpu_config, "shift_set"))
-    registers.R_X[reg_dest] = registers.R_X[reg_source];
-  bool bit = registers.R_X[reg_dest] & 0x80;
-  registers.R_X[reg_dest] <<= registers.R_X[reg_dest];
+    registers.R_X[vx] = registers.R_X[vy];
+  bool bit = (registers.R_X[vx] & 0x80) > 0;
+  registers.R_X[vx] <<= 1;
   registers.R_X[0xF] = bit;
 }
-void instruction_shift_right(u8 reg_dest, u8 reg_source) {
+void instruction_shift_right(u8 vx, u8 vy) {
   if (config_get_int_value(cpu_config, "shift_set"))
-    registers.R_X[reg_dest] = registers.R_X[reg_source];
-  bool bit = registers.R_X[reg_dest] & 0x1;
-  registers.R_X[reg_dest] >>= registers.R_X[reg_dest];
+    registers.R_X[vx] = registers.R_X[vy];
+  bool bit = (registers.R_X[vx] & 0x1) > 0;
+  registers.R_X[vx] >>= 1;
   registers.R_X[0xF] = bit;
 }
 
@@ -150,7 +150,7 @@ void instruction_binary_decimal_conversion(u8 reg) {
 
 void instruction_memory_write(u8 reg) {
   for (u8 i = 0; i <= reg; i++) {
-    ram_write(&registers.R_X[reg], 1, registers.R_I + i);
+    ram_write(&registers.R_X[i], 1, registers.R_I + i);
   }
 
   if (config_get_int_value(cpu_config, "memory_access_modify_index"))
@@ -159,7 +159,7 @@ void instruction_memory_write(u8 reg) {
 void instruction_memory_read(u8 reg) {
   for (u8 i = 0; i <= reg; i++) {
     u8 byte = ram_read(registers.R_I + i);
-    registers.R_X[reg] = byte;
+    registers.R_X[i] = byte;
   }
   if (config_get_int_value(cpu_config, "memory_access_modify_index"))
     registers.R_I += reg + 1;

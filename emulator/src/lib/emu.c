@@ -20,6 +20,7 @@ void *input_handler(void *arg) {
     usleep(1000 * 1000 * 1 / FRAMERATE);
   }
   keypad_free();
+  return NULL;
 }
 
 int main(const int argc, const char *argv[]) {
@@ -52,7 +53,7 @@ int main(const int argc, const char *argv[]) {
     d_timer_tick();
     usleep(1000 * 1000 * 1 / FRAMERATE);
   }
-
+  
   pthread_join(input_handle_thread, NULL);
   free(stop);
   screen_free();

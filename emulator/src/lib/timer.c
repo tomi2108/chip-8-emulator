@@ -5,7 +5,7 @@ u8 sound_timer = 0;
 
 void timer_init() {
   delay_timer = 0;
-  sound_timer = 10;
+  sound_timer = 0;
 }
 
 u8 d_timer_get() { return delay_timer; }

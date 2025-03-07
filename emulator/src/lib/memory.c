@@ -24,7 +24,7 @@ void stack_push(u16 bytes) {
 
 u16 *stack_pop() { return list_get(stack, list_size(stack) - 1); }
 
-u8 font[0xFF] = {
+u8 font[0x50] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -48,7 +48,7 @@ void memory_init() {
       log_create(memory_logger.file, memory_logger.process,
                  memory_logger.is_active_console, memory_logger.level);
   stack = list_create();
-  ram_write(font, 5 * 0xF, 0x50);
+  ram_write(font, 0x50, 0x50);
 }
 
 void memory_free() {
